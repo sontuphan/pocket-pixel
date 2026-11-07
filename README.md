@@ -12,7 +12,7 @@ cargo run -- get config
 cargo run -- get palette
 cargo run -- discover
 cargo run -- generate hero.pp.json
-cargo run -- preview hero.pp.json
+cargo run -- textify reference.png
 ```
 
 ## Install locally
@@ -88,9 +88,24 @@ Choose a character not already used in either mapping. `.` remains a dark color.
 Older configs without this optional setting keep all mapped pixels opaque; add
 `"transparent": " "` under `map` to enable it in an existing project.
 
-Run `pocket-pixel preview hero.pp.json` to display the color image on the left
-and the normal map on the right directly from the artifact, without writing PNGs.
-It uses ANSI truecolor and Unicode half blocks to display two pixel rows per
-terminal row. Use a truecolor terminal wide enough for twice the image width plus
-four columns. Redirected preview output also contains ANSI escape sequences.
-Transparent pixels use the terminal's default background.
+Convert an existing image into the text format:
+
+```sh
+pocket-pixel textify reference.png
+pocket-pixel textify reference.png --output hero.pp.json
+```
+
+`textify` supports PNG, JPEG, WebP, GIF (first frame), and BMP. It preserves pixel
+dimensions, without resizing or dithering. Each opaque pixel is mapped to the
+nearest `palette.colors` entry by squared RGB distance and represented by the
+matching `map.colors` character. Equal distances favor the first palette entry.
+
+Alpha values at or below 127 become `map.transparent`; larger values become
+fully opaque. Change the cutoff with `--alpha-threshold 0` to keep every pixel
+with nonzero alpha opaque. Transparent input requires a configured transparent
+character. Both grids receive the same transparency mask.
+
+The normal grid starts flat, using the configured normal color nearest to
+`#8080ff`; surface shape is not inferred from the image. Refine normals afterward.
+The default output is `<input-name>.pp.json` beside the image. Existing files
+are never overwritten, and the source image and config are preserved.

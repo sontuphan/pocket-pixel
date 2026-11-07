@@ -1,7 +1,7 @@
 mod config;
 mod generate;
 mod palette;
-mod preview;
+mod textify;
 
 use clap::{Parser, Subcommand};
 use std::process::ExitCode;
@@ -31,10 +31,16 @@ enum Command {
         /// Artifact containing colors and normals text grids
         artifact: std::path::PathBuf,
     },
-    /// Preview color and normal-map grids in a truecolor terminal
-    Preview {
-        /// Artifact containing colors and normals text grids
-        artifact: std::path::PathBuf,
+    /// Convert an image to text grids using the nearest configured palette colors
+    Textify {
+        /// PNG, JPEG, WebP, GIF (first frame), or BMP image
+        image: std::path::PathBuf,
+        /// Output .pp.json path (defaults to the input image's basename)
+        #[arg(short, long)]
+        output: Option<std::path::PathBuf>,
+        /// Pixels with alpha at or below this value become transparent
+        #[arg(long, default_value_t = 127)]
+        alpha_threshold: u8,
     },
 }
 
@@ -51,7 +57,11 @@ fn main() -> ExitCode {
     let result = match cli.command {
         Command::Init => config::init(),
         Command::Generate { artifact } => generate::run(&artifact),
-        Command::Preview { artifact } => preview::run(&artifact),
+        Command::Textify {
+            image,
+            output,
+            alpha_threshold,
+        } => textify::run(&image, output.as_deref(), alpha_threshold),
         Command::Palette
         | Command::Get {
             resource: Resource::Palette,

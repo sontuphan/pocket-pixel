@@ -111,7 +111,7 @@ fn generates_exact_pixels_and_preserves_outputs_on_invalid_artifacts() {
 }
 
 #[test]
-fn supports_transparent_pixels_in_both_pngs_and_preview() {
+fn supports_transparent_pixels_in_both_pngs() {
     let directory = std::env::temp_dir().join(format!("pocket-pixel-alpha-{}", std::process::id()));
     fs::create_dir_all(&directory).unwrap();
     assert!(run(&directory, &["init"]).status.success());
@@ -125,13 +125,6 @@ fn supports_transparent_pixels_in_both_pngs_and_preview() {
         serde_json::json!({"colors": [" . ", "@  "], "normals": [" • ", "→  "]}).to_string(),
     )
     .unwrap();
-    let preview = run(&directory, &["preview", "alpha.pp.json"]);
-    assert!(preview.status.success());
-    let text = String::from_utf8(preview.stdout).unwrap();
-    assert!(text.contains("\x1b[38;2;255;255;255m\x1b[49m▄"));
-    assert!(text.contains("\x1b[38;2;24;20;37m\x1b[49m▀"));
-    assert!(text.contains("\x1b[0m "));
-    assert!(!directory.join("alpha.png").exists());
     let result = run(&directory, &["generate", "alpha.pp.json"]);
     assert!(
         result.status.success(),
@@ -181,7 +174,7 @@ fn supports_transparent_pixels_in_both_pngs_and_preview() {
         fs::write(&config_path, config.to_string()).unwrap();
         assert!(!run(&directory, &["palette"]).status.success());
         assert!(
-            !run(&directory, &["preview", "alpha.pp.json"])
+            !run(&directory, &["generate", "alpha.pp.json"])
                 .status
                 .success()
         );

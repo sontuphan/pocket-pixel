@@ -1,11 +1,11 @@
 use crate::{config, palette};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use std::{collections::HashMap, fs, io, path::Path};
 
-#[derive(Deserialize)]
-struct Artifact {
-    colors: Vec<String>,
-    normals: Vec<String>,
+#[derive(Deserialize, Serialize)]
+pub(crate) struct Artifact {
+    pub(crate) colors: Vec<String>,
+    pub(crate) normals: Vec<String>,
 }
 
 pub(crate) struct Image {
@@ -110,7 +110,7 @@ pub fn run(path: &Path) -> io::Result<()> {
     Ok(())
 }
 
-// Shared validation and rendering for PNG generation and terminal previews.
+// Validate and render both artifact grids for PNG generation.
 pub(crate) fn load(path: &Path) -> io::Result<(Image, Image)> {
     let config: palette::Config = serde_json::from_str(&config::read()?)
         .map_err(|error| invalid(format!("invalid {}: {error}", config::CONFIG_FILE)))?;

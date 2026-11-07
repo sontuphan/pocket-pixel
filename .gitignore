@@ -5,5 +5,5 @@
 dist
 pocket-pixel.config.json
 
-#misc
+# misc
 .DS_Store
