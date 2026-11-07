@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 description = "Text-first pixel art tools for humans and agents"
 repository = "https://github.com/sontuphan/pocket-pixel"
+license = "MIT"
 
 [dependencies]
 clap = { version = "4.6.7", features = ["derive"] }
