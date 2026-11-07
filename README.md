@@ -77,11 +77,20 @@ Run `pocket-pixel generate hero.pp.json` to write `hero.png` and `hero_normal.pn
 beside the artifact. Both grids must be non-empty, rectangular, have matching
 dimensions, and use the current config's mapped characters. Unicode symbols
 count as one pixel each. Images use the grids' dimensions without scaling and
-are opaque RGB. Existing output PNGs are replaced on regeneration; the artifact
+use RGBA with alpha 0 for transparent pixels and alpha 255 for mapped colors.
+Existing output PNGs are replaced on regeneration; the artifact
 is preserved. The config is read from the current working directory.
+
+`map.transparent` defines a shared transparent character for both grids. New
+configs use a space (`"transparent": " "`). Keep transparent positions identical
+in `colors` and `normals`; spaces count toward row widths and must be preserved.
+Choose a character not already used in either mapping. `.` remains a dark color.
+Older configs without this optional setting keep all mapped pixels opaque; add
+`"transparent": " "` under `map` to enable it in an existing project.
 
 Run `pocket-pixel preview hero.pp.json` to display the color image on the left
 and the normal map on the right directly from the artifact, without writing PNGs.
 It uses ANSI truecolor and Unicode half blocks to display two pixel rows per
 terminal row. Use a truecolor terminal wide enough for twice the image width plus
 four columns. Redirected preview output also contains ANSI escape sequences.
+Transparent pixels use the terminal's default background.

@@ -21,9 +21,28 @@ pub(crate) struct Palette {
 
 #[derive(Deserialize)]
 pub(crate) struct Mapping {
+    #[serde(default)]
+    pub(crate) transparent: Option<String>,
     pub(crate) colors: Vec<String>,
     #[serde(default)]
     pub(crate) normals: Vec<String>,
+}
+
+impl Mapping {
+    pub(crate) fn transparency(&self) -> io::Result<Option<char>> {
+        let Some(symbol) = &self.transparent else {
+            return Ok(None);
+        };
+        if symbol.chars().count() != 1 || symbol.chars().any(char::is_control) {
+            return Err(invalid("map.transparent must be one printable character"));
+        }
+        if self.colors.contains(symbol) || self.normals.contains(symbol) {
+            return Err(invalid(
+                "map.transparent must not also be a color or normal mapping",
+            ));
+        }
+        Ok(symbol.chars().next())
+    }
 }
 
 fn invalid(message: impl Into<String>) -> io::Error {
@@ -84,10 +103,14 @@ pub fn show() -> io::Result<()> {
         .map_err(|error| invalid(format!("invalid {CONFIG_FILE}: {error}")))?;
     validate(&config.palette.colors, &config.map.colors, "colors")?;
     validate(&config.palette.normals, &config.map.normals, "normals")?;
+    let transparent = config.map.transparency()?;
     let colored = io::stdout().is_terminal()
         && env::var_os("NO_COLOR").is_none()
         && env::var("TERM").as_deref() != Ok("dumb");
     println!("Palette: {}", config.palette.name.escape_debug());
+    if let Some(symbol) = transparent {
+        println!("Transparent: {symbol:?} (alpha 0)");
+    }
     print_section(
         "Colors",
         &config.palette.colors,

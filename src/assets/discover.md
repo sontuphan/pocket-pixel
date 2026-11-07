@@ -52,8 +52,10 @@ than relying on the apparent density of a character.
 
 Start with the silhouette and broad color regions, then refine proportions,
 lighting, outlines, and details. Follow the style of related project artwork.
-Use only mapped characters. `.` is a mapped color, not transparency; the current
-config does not define transparent pixels.
+Use only mapped characters or the configured `map.transparent` character.
+New configs use a space for transparency; preserve spaces, including those at
+row ends, because they count as pixels. `.` remains a mapped dark color. Older
+configs may omit transparency, so read the current config before using it.
 
 Keep labels, coordinate guides, and explanations outside the row strings.
 Check that the artifact is valid JSON, row lengths match, and every character
@@ -64,6 +66,7 @@ State the artifact path and pixel dimensions when sharing the preview.
 
 Draw the `normals` grid in the same artifact, with the same dimensions and pixel
 positions as `colors`. Represent `palette.normals[i]` with `map.normals[i]`.
+Use the transparent character at exactly the same positions in both grids.
 
 Normal colors encode surface directions: red is X (right), green is Y (up),
 and blue is Z (toward the viewer). In the default mapping, `•` faces the viewer;
@@ -122,5 +125,5 @@ arrays aligned if the user requests configuration changes.
 Create and revise the JSON artifact with your file-editing tools, then use
 `generate` to validate and render it. Unmapped characters, invalid hex colors,
 duplicate mappings, uneven rows, and mismatched grid dimensions must be fixed
-before generation succeeds. PNGs are opaque RGB images; transparency is not yet
-supported.
+before generation succeeds. PNGs use RGBA: transparent characters have alpha 0,
+and mapped colors have alpha 255. Mismatched transparency between grids is an error.

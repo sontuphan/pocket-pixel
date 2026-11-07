@@ -52,6 +52,7 @@
     "tileHeight": 32
   },
   "map": {
+    "transparent": " ",
     "colors": [
       "l",
       "u",

@@ -23,6 +23,7 @@ fn render(
     colors: &[String],
     symbols: &[String],
     section: &str,
+    transparent: Option<char>,
 ) -> io::Result<Image> {
     palette::validate(colors, symbols, section)?;
     let width = rows.first().map_or(0, |row| row.chars().count());
@@ -31,7 +32,11 @@ fn render(
     }
     let mut mapping = HashMap::new();
     for (symbol, color) in symbols.iter().zip(colors) {
-        mapping.insert(symbol.chars().next().unwrap(), palette::rgb(color)?);
+        let [r, g, b] = palette::rgb(color)?;
+        mapping.insert(symbol.chars().next().unwrap(), [r, g, b, 255]);
+    }
+    if let Some(symbol) = transparent {
+        mapping.insert(symbol, [0, 0, 0, 0]);
     }
     let mut pixels = Vec::new();
     for (y, row) in rows.iter().enumerate() {
@@ -63,7 +68,7 @@ fn encode(image: &Image) -> io::Result<Vec<u8>> {
     let mut bytes = Vec::new();
     {
         let mut encoder = png::Encoder::new(&mut bytes, image.width, image.height);
-        encoder.set_color(png::ColorType::Rgb);
+        encoder.set_color(png::ColorType::Rgba);
         encoder.set_depth(png::BitDepth::Eight);
         let mut writer = encoder.write_header().map_err(io::Error::other)?;
         writer
@@ -117,20 +122,35 @@ pub(crate) fn load(path: &Path) -> io::Result<(Image, Image)> {
     })?;
     let artifact: Artifact = serde_json::from_str(&text)
         .map_err(|error| invalid(format!("invalid {}: {error}", path.display())))?;
+    let transparent = config.map.transparency()?;
     let colors = render(
         &artifact.colors,
         &config.palette.colors,
         &config.map.colors,
         "colors",
+        transparent,
     )?;
     let normals = render(
         &artifact.normals,
         &config.palette.normals,
         &config.map.normals,
         "normals",
+        transparent,
     )?;
     if (colors.width, colors.height) != (normals.width, normals.height) {
         return Err(invalid("colors and normals must have matching dimensions"));
+    }
+    if colors
+        .pixels
+        .as_chunks::<4>()
+        .0
+        .iter()
+        .zip(normals.pixels.as_chunks::<4>().0.iter())
+        .any(|(color, normal)| color[3] != normal[3])
+    {
+        return Err(invalid(
+            "colors and normals must have matching transparent pixels",
+        ));
     }
     Ok((colors, normals))
 }
