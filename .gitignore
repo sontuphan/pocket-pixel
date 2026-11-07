@@ -1,1 +1,5 @@
+# build
 /target/
+
+# dist
+pocket-pixel.config.json

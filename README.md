@@ -8,6 +8,7 @@ A Rust CLI for text-first pixel art collaboration between humans and agents.
 cargo run -- --help
 cargo run -- --version
 cargo run -- init
+cargo run -- palette
 ```
 
 ## Install locally
@@ -21,6 +22,11 @@ Run `pocket-pixel init` in your art project to create `pocket-pixel.config.json`
 It includes an editable [ENDESGA 32 palette](https://lospec.com/palette-list/endesga-32)
 by ENDESGA and a default tile size of 32×32 pixels. Existing configs are never
 overwritten.
+
+Run `pocket-pixel palette` to display the current directory's configured colors
+and normals with their indices, mapped characters, and hex values. Color swatches
+appear in interactive terminals; redirected output is plain text. Set `NO_COLOR`
+to disable swatches.
 
 `palette.colors` lists hex colors, and `map.colors` lists ASCII characters.
 The arrays align by position: `map.colors[i]` represents `palette.colors[i]`.
