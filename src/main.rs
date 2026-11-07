@@ -1,4 +1,5 @@
 mod config;
+mod generate;
 mod palette;
 
 use clap::{Parser, Subcommand};
@@ -24,6 +25,11 @@ enum Command {
     },
     /// Print instructions for agents creating pixel art with pocket-pixel
     Discover,
+    /// Generate color and normal-map PNGs from a .pp.json artifact
+    Generate {
+        /// Artifact containing colors and normals text grids
+        artifact: std::path::PathBuf,
+    },
 }
 
 #[derive(Subcommand)]
@@ -38,6 +44,7 @@ fn main() -> ExitCode {
     let cli = Cli::parse();
     let result = match cli.command {
         Command::Init => config::init(),
+        Command::Generate { artifact } => generate::run(&artifact),
         Command::Palette
         | Command::Get {
             resource: Resource::Palette,

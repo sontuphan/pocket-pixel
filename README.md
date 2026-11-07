@@ -11,6 +11,7 @@ cargo run -- init
 cargo run -- get config
 cargo run -- get palette
 cargo run -- discover
+cargo run -- generate hero.pp.json
 ```
 
 ## Install locally
@@ -62,4 +63,18 @@ viewer). Each direction component is encoded as `round((component + 1) * 127.5)`
 indicated direction, such as `→` (`#da80da`) and `↑` (`#80dada`). Normal canvases
 will be separate from color canvases, with one symbol per pixel.
 
-Canvas editing, validation, and rendering will be added next.
+Create an artifact such as `hero.pp.json` with two text grids:
+
+```json
+{
+  "colors": [".@", "@."],
+  "normals": ["•→", "↑↖"]
+}
+```
+
+Run `pocket-pixel generate hero.pp.json` to write `hero.png` and `hero_normal.png`
+beside the artifact. Both grids must be non-empty, rectangular, have matching
+dimensions, and use the current config's mapped characters. Unicode symbols
+count as one pixel each. Images use the grids' dimensions without scaling and
+are opaque RGB. Existing output PNGs are replaced on regeneration; the artifact
+is preserved. The config is read from the current working directory.

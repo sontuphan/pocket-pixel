@@ -6,31 +6,31 @@ use std::{
 };
 
 #[derive(Deserialize)]
-struct Config {
-    palette: Palette,
-    map: Mapping,
+pub(crate) struct Config {
+    pub(crate) palette: Palette,
+    pub(crate) map: Mapping,
 }
 
 #[derive(Deserialize)]
-struct Palette {
-    name: String,
-    colors: Vec<String>,
+pub(crate) struct Palette {
+    pub(crate) name: String,
+    pub(crate) colors: Vec<String>,
     #[serde(default)]
-    normals: Vec<String>,
+    pub(crate) normals: Vec<String>,
 }
 
 #[derive(Deserialize)]
-struct Mapping {
-    colors: Vec<String>,
+pub(crate) struct Mapping {
+    pub(crate) colors: Vec<String>,
     #[serde(default)]
-    normals: Vec<String>,
+    pub(crate) normals: Vec<String>,
 }
 
 fn invalid(message: impl Into<String>) -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, message.into())
 }
 
-fn rgb(hex: &str) -> io::Result<[u8; 3]> {
+pub(crate) fn rgb(hex: &str) -> io::Result<[u8; 3]> {
     let digits = hex.strip_prefix('#').unwrap_or("");
     if digits.len() != 6 || !digits.bytes().all(|byte| byte.is_ascii_hexdigit()) {
         return Err(invalid(format!("invalid color {hex:?}; expected #RRGGBB")));
@@ -42,13 +42,19 @@ fn rgb(hex: &str) -> io::Result<[u8; 3]> {
     ])
 }
 
-fn validate(colors: &[String], symbols: &[String], section: &str) -> io::Result<()> {
+pub(crate) fn validate(colors: &[String], symbols: &[String], section: &str) -> io::Result<()> {
     if colors.len() != symbols.len() {
         return Err(invalid(format!(
             "palette.{section} and map.{section} must have equal lengths"
         )));
     }
+    let mut seen = std::collections::HashSet::new();
     for (index, (color, symbol)) in colors.iter().zip(symbols).enumerate() {
+        if !seen.insert(symbol) {
+            return Err(invalid(format!(
+                "duplicate character {symbol:?} in map.{section}"
+            )));
+        }
         rgb(color)?;
         if symbol.chars().count() != 1 || symbol.chars().any(char::is_control) {
             return Err(invalid(format!(

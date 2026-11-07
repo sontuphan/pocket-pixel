@@ -1,7 +1,8 @@
 # Create pixel art with pocket-pixel
 
 Use pocket-pixel to collaborate with the user on sprites and tilesets. Deliver
-editable text artwork using the project's palette and character mappings.
+an editable `<name>.pp.json` artifact containing a text-based color image and
+normal map, then generate `<name>.png` and `<name>_normal.png` from it.
 
 ## Prepare the art project
 
@@ -15,9 +16,32 @@ configured palette and tile dimensions. Ask about missing artistic requirements
 only when they materially affect the result; otherwise choose a reasonable
 starting point and describe it briefly.
 
-## Draw the artwork
+## Create the artifact
 
-Create a text grid with one character per pixel and one line per pixel row.
+Create `<name>.pp.json` in the art project. Store both grids as arrays of row
+strings in a single JSON object:
+
+```json
+{
+  "colors": [
+    ".@@.",
+    "@@@@",
+    "@@@@",
+    ".@@."
+  ],
+  "normals": [
+    "↖↑↑↗",
+    "←••→",
+    "←••→",
+    "↙↓↓↘"
+  ]
+}
+```
+
+This is a 4×4 structure example using the default mappings. Draw the real
+artifact at the project's intended dimensions and use its current mappings.
+
+Use one character per pixel and one array entry per pixel row.
 For a single tile, use `tileset.tileWidth` columns and `tileset.tileHeight` rows.
 For a larger composition, use the agreed dimensions and tile layout.
 
@@ -31,26 +55,42 @@ lighting, outlines, and details. Follow the style of related project artwork.
 Use only mapped characters. `.` is a mapped color, not transparency; the current
 config does not define transparent pixels.
 
-Save the grid in the art project using its existing file conventions, or a
-plain text file if none exist. Keep labels, coordinate guides, and explanations
-outside the grid. Show the artwork to the user and state the file path and pixel
-dimensions. Check row lengths and character mappings before sharing.
+Keep labels, coordinate guides, and explanations outside the row strings.
+Check that the artifact is valid JSON, row lengths match, and every character
+has a configured mapping. Count Unicode characters, not UTF-8 bytes.
+Show the text artwork to the user and state the artifact path and pixel dimensions.
 
-## Add normal maps when needed
+## Draw the normal map
 
-Use a separate text grid with the same dimensions and pixel positions as the
-color grid. Represent `palette.normals[i]` with `map.normals[i]`.
+Draw the `normals` grid in the same artifact, with the same dimensions and pixel
+positions as `colors`. Represent `palette.normals[i]` with `map.normals[i]`.
 
 Normal colors encode surface directions: red is X (right), green is Y (up),
 and blue is Z (toward the viewer). In the default mapping, `•` faces the viewer;
 arrows tilt 45 degrees toward the indicated direction. Describe the object's
 surface shape independently of its painted colors and shadows.
 
+## Generate the images
+
+After drawing both grids, run:
+
+```sh
+pocket-pixel generate <name>.pp.json
+```
+
+It produces `<name>.png` for the color image and `<name>_normal.png` for
+the normal map alongside the artifact. Keep `<name>.pp.json` as the editable
+source. The command reads the config from the current directory, validates both
+grids, and writes one pixel per character. Outputs use the grids' dimensions;
+they are not resized to the configured tile size. Existing PNG outputs are
+replaced when regenerating. Inspect the generated images and report their paths.
+
 ## Refine together
 
 Apply the user's feedback to the existing artwork. Make targeted changes,
 preserve unrelated details, and keep related tiles stylistically consistent.
-Show the revised grid and briefly explain the changes. Keep palette and mapping
+Edit the artifact first, then regenerate both images.
+Show the revision and briefly explain the changes. Keep palette and mapping
 arrays aligned if the user requests configuration changes.
 
 ## Available tool support
@@ -60,8 +100,11 @@ arrays aligned if the user requests configuration changes.
 - `pocket-pixel get palette`: display the configured colors and mappings.
 - `pocket-pixel palette`: shortcut for `pocket-pixel get palette`.
 - `pocket-pixel discover`: read these art collaboration instructions.
+- `pocket-pixel generate <name>.pp.json`: validate and render both grids to PNGs.
 - `pocket-pixel --help`: inspect available commands.
 
-Create and revise text grids with your file-editing tools. The CLI currently
-supports configuration and palette inspection; image rendering, export, and
-canvas validation are not yet available. Present text artwork as text artwork.
+Create and revise the JSON artifact with your file-editing tools, then use
+`generate` to validate and render it. Unmapped characters, invalid hex colors,
+duplicate mappings, uneven rows, and mismatched grid dimensions must be fixed
+before generation succeeds. PNGs are opaque RGB images; transparency is not yet
+supported.
