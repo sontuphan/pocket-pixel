@@ -1,7 +1,7 @@
-use crate::config::CONFIG_FILE;
+use crate::config::{self, CONFIG_FILE};
 use serde::Deserialize;
 use std::{
-    env, fs,
+    env,
     io::{self, IsTerminal},
 };
 
@@ -73,17 +73,7 @@ fn print_section(title: &str, colors: &[String], symbols: &[String], colored: bo
 }
 
 pub fn show() -> io::Result<()> {
-    let text = fs::read_to_string(CONFIG_FILE).map_err(|error| {
-        let hint = if error.kind() == io::ErrorKind::NotFound {
-            "; run 'pocket-pixel init' first"
-        } else {
-            ""
-        };
-        io::Error::new(
-            error.kind(),
-            format!("cannot read {CONFIG_FILE}: {error}{hint}"),
-        )
-    })?;
+    let text = config::read()?;
     let config: Config = serde_json::from_str(&text)
         .map_err(|error| invalid(format!("invalid {CONFIG_FILE}: {error}")))?;
     validate(&config.palette.colors, &config.map.colors, "colors")?;
