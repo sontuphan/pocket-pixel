@@ -8,10 +8,10 @@ struct Artifact {
     normals: Vec<String>,
 }
 
-struct Image {
-    width: u32,
-    height: u32,
-    pixels: Vec<u8>,
+pub(crate) struct Image {
+    pub(crate) width: u32,
+    pub(crate) height: u32,
+    pub(crate) pixels: Vec<u8>,
 }
 
 fn invalid(message: impl Into<String>) -> io::Error {
@@ -81,6 +81,32 @@ pub fn run(path: &Path) -> io::Result<()> {
         .and_then(|name| name.strip_suffix(".pp.json"))
         .filter(|name| !name.is_empty())
         .ok_or_else(|| invalid("artifact filename must be <name>.pp.json"))?;
+    let (colors, normals) = load(path)?;
+    // Validate and encode both images before changing either output file.
+    let color_png = encode(&colors)?;
+    let normal_png = encode(&normals)?;
+    let color_path = path.with_file_name(format!("{name}.png"));
+    let normal_path = path.with_file_name(format!("{name}_normal.png"));
+    for (output, bytes) in [(&color_path, color_png), (&normal_path, normal_png)] {
+        fs::write(output, bytes).map_err(|error| {
+            io::Error::new(
+                error.kind(),
+                format!("cannot write {}: {error}", output.display()),
+            )
+        })?;
+    }
+    println!(
+        "Generated {} and {} ({}x{})",
+        color_path.display(),
+        normal_path.display(),
+        colors.width,
+        colors.height
+    );
+    Ok(())
+}
+
+// Shared validation and rendering for PNG generation and terminal previews.
+pub(crate) fn load(path: &Path) -> io::Result<(Image, Image)> {
     let config: palette::Config = serde_json::from_str(&config::read()?)
         .map_err(|error| invalid(format!("invalid {}: {error}", config::CONFIG_FILE)))?;
     let text = fs::read_to_string(path).map_err(|error| {
@@ -106,25 +132,5 @@ pub fn run(path: &Path) -> io::Result<()> {
     if (colors.width, colors.height) != (normals.width, normals.height) {
         return Err(invalid("colors and normals must have matching dimensions"));
     }
-    // Validate and encode both images before changing either output file.
-    let color_png = encode(&colors)?;
-    let normal_png = encode(&normals)?;
-    let color_path = path.with_file_name(format!("{name}.png"));
-    let normal_path = path.with_file_name(format!("{name}_normal.png"));
-    for (output, bytes) in [(&color_path, color_png), (&normal_path, normal_png)] {
-        fs::write(output, bytes).map_err(|error| {
-            io::Error::new(
-                error.kind(),
-                format!("cannot write {}: {error}", output.display()),
-            )
-        })?;
-    }
-    println!(
-        "Generated {} and {} ({}x{})",
-        color_path.display(),
-        normal_path.display(),
-        colors.width,
-        colors.height
-    );
-    Ok(())
+    Ok((colors, normals))
 }

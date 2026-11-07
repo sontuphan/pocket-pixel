@@ -58,7 +58,7 @@ config does not define transparent pixels.
 Keep labels, coordinate guides, and explanations outside the row strings.
 Check that the artifact is valid JSON, row lengths match, and every character
 has a configured mapping. Count Unicode characters, not UTF-8 bytes.
-Show the text artwork to the user and state the artifact path and pixel dimensions.
+State the artifact path and pixel dimensions when sharing the preview.
 
 ## Draw the normal map
 
@@ -69,6 +69,20 @@ Normal colors encode surface directions: red is X (right), green is Y (up),
 and blue is Z (toward the viewer). In the default mapping, `•` faces the viewer;
 arrows tilt 45 degrees toward the indicated direction. Describe the object's
 surface shape independently of its painted colors and shadows.
+
+## Preview the artifact for the user
+
+After creating or updating `<name>.pp.json`, you must run:
+
+```sh
+pocket-pixel preview <name>.pp.json
+```
+
+Show the terminal preview to the user so they can review the color image and
+normal map side by side. This is a required part of delivering each artifact or
+revision; sharing only the JSON or a file path is insufficient. Fix any preview
+validation errors and run it again before presenting the result. The preview
+uses a truecolor terminal and does not write images.
 
 ## Generate the images
 
@@ -89,7 +103,8 @@ replaced when regenerating. Inspect the generated images and report their paths.
 
 Apply the user's feedback to the existing artwork. Make targeted changes,
 preserve unrelated details, and keep related tiles stylistically consistent.
-Edit the artifact first, then regenerate both images.
+Edit the artifact first, run `preview` to show the revision to the user, then
+regenerate both images.
 Show the revision and briefly explain the changes. Keep palette and mapping
 arrays aligned if the user requests configuration changes.
 
@@ -101,6 +116,7 @@ arrays aligned if the user requests configuration changes.
 - `pocket-pixel palette`: shortcut for `pocket-pixel get palette`.
 - `pocket-pixel discover`: read these art collaboration instructions.
 - `pocket-pixel generate <name>.pp.json`: validate and render both grids to PNGs.
+- `pocket-pixel preview <name>.pp.json`: display both grids in a truecolor terminal.
 - `pocket-pixel --help`: inspect available commands.
 
 Create and revise the JSON artifact with your file-editing tools, then use

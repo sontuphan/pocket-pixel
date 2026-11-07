@@ -1,6 +1,7 @@
 mod config;
 mod generate;
 mod palette;
+mod preview;
 
 use clap::{Parser, Subcommand};
 use std::process::ExitCode;
@@ -30,6 +31,11 @@ enum Command {
         /// Artifact containing colors and normals text grids
         artifact: std::path::PathBuf,
     },
+    /// Preview color and normal-map grids in a truecolor terminal
+    Preview {
+        /// Artifact containing colors and normals text grids
+        artifact: std::path::PathBuf,
+    },
 }
 
 #[derive(Subcommand)]
@@ -45,6 +51,7 @@ fn main() -> ExitCode {
     let result = match cli.command {
         Command::Init => config::init(),
         Command::Generate { artifact } => generate::run(&artifact),
+        Command::Preview { artifact } => preview::run(&artifact),
         Command::Palette
         | Command::Get {
             resource: Resource::Palette,

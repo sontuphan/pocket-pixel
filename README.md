@@ -12,6 +12,7 @@ cargo run -- get config
 cargo run -- get palette
 cargo run -- discover
 cargo run -- generate hero.pp.json
+cargo run -- preview hero.pp.json
 ```
 
 ## Install locally
@@ -78,3 +79,9 @@ dimensions, and use the current config's mapped characters. Unicode symbols
 count as one pixel each. Images use the grids' dimensions without scaling and
 are opaque RGB. Existing output PNGs are replaced on regeneration; the artifact
 is preserved. The config is read from the current working directory.
+
+Run `pocket-pixel preview hero.pp.json` to display the color image on the left
+and the normal map on the right directly from the artifact, without writing PNGs.
+It uses ANSI truecolor and Unicode half blocks to display two pixel rows per
+terminal row. Use a truecolor terminal wide enough for twice the image width plus
+four columns. Redirected preview output also contains ANSI escape sequences.
